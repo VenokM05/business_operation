@@ -421,20 +421,44 @@ Code style:
 
 ## Screenshots
 
-The interface is branded with the BOMS logo and follows a navy/cyan design system. Drop PNGs captured
-from the running demo into `docs/screenshots/` to populate this section. Each screen to capture:
+The interface is branded with the BOMS logo and follows a navy/cyan design system. Captured from the
+seeded demo at 1440px width — fake, local-only data.
 
-| Screen | Path | What it shows |
-| --- | --- | --- |
-| Login | `/login` | Split-screen: navy showcase panel + branded sign-in card |
-| Dashboard | `/dashboard` | Stat cards with icon chips, status chart, recent activity |
-| Client list | `/clients` | Filter bar + data table with status badges |
-| Client detail | `/clients/{id}` | Company info, related projects & requests |
-| Project | `/projects/{id}` | Overview, team assignment, linked requests/tasks |
-| Service request | `/service-requests/{id}` | Detail, status actions, assignment |
-| Request timeline | (request detail) | Chronological activity with cyan markers |
-| Reports | `/reports` | Aggregates + CSV/Excel export |
-| Activity logs | `/activity-logs` | Searchable, filterable audit trail |
+### Login
+
+![BOMS login — split-screen navy showcase panel and branded sign-in card](docs/screenshots/01-login.png)
+
+### Dashboard
+
+![Dashboard — stat cards with icon chips, service-request status chart and recent activity](docs/screenshots/02-dashboard.png)
+
+### Clients
+
+![Client list — filter bar and data table with status badges](docs/screenshots/03-clients.png)
+
+### Client detail
+
+![Client detail — company info with related projects and requests](docs/screenshots/04-client-detail.png)
+
+### Project
+
+![Project detail — overview, team assignment and linked requests/tasks](docs/screenshots/05-project.png)
+
+### Service request
+
+![Service request detail — status actions, assignment and timeline](docs/screenshots/06-service-request.png)
+
+### Request timeline
+
+![Request activity timeline — chronological updates with cyan markers](docs/screenshots/07-request-timeline.png)
+
+### Reports
+
+![Reports — aggregates with one-click CSV/Excel export](docs/screenshots/08-reports.png)
+
+### Activity logs
+
+![Activity logs — searchable, filterable audit trail](docs/screenshots/09-activity-logs.png)
 
 ## Security
 
