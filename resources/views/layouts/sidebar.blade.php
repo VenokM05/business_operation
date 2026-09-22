@@ -35,6 +35,12 @@
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M5 4h14v16H5z"/></svg>
             Tasks
         </x-sidebar-link>
+        @can('viewReports')
+            <x-sidebar-link :href="route('reports.index')" :active="request()->routeIs('reports.*')">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 21h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                Reports
+            </x-sidebar-link>
+        @endcan
         @can('viewAny', App\Models\ActivityLog::class)
             <x-sidebar-link :href="route('activity-logs.index')" :active="request()->routeIs('activity-logs.*')">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0"/></svg>

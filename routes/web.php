@@ -5,6 +5,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceRequestController;
 use App\Http\Controllers\TaskController;
@@ -36,6 +37,10 @@ Route::middleware(['auth'])->group(function () {
     Route::patch('service-requests/{service_request}/status', [ServiceRequestController::class, 'updateStatus'])->name('service-requests.status');
     Route::post('service-requests/{service_request}/comments', [ServiceRequestController::class, 'addComment'])->name('service-requests.comments');
     Route::patch('service-requests/{service_request}/restore', [ServiceRequestController::class, 'restore'])->withTrashed()->name('service-requests.restore');
+
+    // Reports (Admin/Manager only, enforced via the viewReports / exportReports gates)
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('/reports/export/{report}/{format}', [ReportController::class, 'export'])->name('reports.export');
 });
 
 Route::middleware('auth')->group(function () {

@@ -26,5 +26,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function (User $user, string $ability) {
             return $user->hasRole(UserRole::Admin) ? true : null;
         });
+
+        // Reports are Admin/Manager only (PRD Section 2 matrix); Staff excluded.
+        Gate::define('viewReports', fn (User $user) => $user->isAdmin() || $user->isManager());
+        Gate::define('exportReports', fn (User $user) => $user->isAdmin() || $user->isManager());
     }
 }
