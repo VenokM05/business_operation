@@ -64,6 +64,10 @@
                     </select>
                     <x-input-error :messages="$errors->get('assigned_to')" class="mt-1" />
                 </div>
+                @else
+                <div class="sm:col-span-2">
+                    <p class="text-sm text-gray-500">New requests start unassigned &mdash; a manager or admin will assign the staff who picks this up.</p>
+                </div>
                 @endcan
 
                 <div>
