@@ -4,17 +4,21 @@ namespace App\Http\Controllers;
 
 use App\Enums\Priority;
 use App\Enums\ProjectStatus;
-use App\Enums\UserRole;
+use App\Http\Requests\ListingRequest;
 use App\Http\Requests\ProjectRequest;
+use App\Http\Requests\ProjectTeamRequest;
 use App\Models\ActivityLog;
 use App\Models\Client;
 use App\Models\Project;
 use App\Models\User;
-use Illuminate\Http\Request;
+use App\Services\ProjectService;
+use Illuminate\Support\Facades\DB;
 
 class ProjectController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(private readonly ProjectService $service) {}
+
+    public function index(ListingRequest $request)
     {
         $this->authorize('viewAny', Project::class);
 
@@ -22,14 +26,11 @@ class ProjectController extends Controller
 
         $projects = Project::query()
             ->with(['client', 'manager'])
-            ->withCount('serviceRequests')
-            ->when($user->isStaff(), function ($q) use ($user) {
-                // Staff only see projects they belong to or manage.
-                $q->where(function ($qq) use ($user) {
-                    $qq->where('project_manager_id', $user->id)
-                        ->orWhereHas('users', fn ($u) => $u->whereKey($user->id));
-                });
-            })
+            ->withCount(['serviceRequests' => fn ($q) => $q->visibleTo($user)])
+            ->visibleTo($user)
+            ->when($request->query('archive') === 'archived', fn ($q) => $q->onlyTrashed())
+            ->when($request->filled('from'), fn ($q) => $q->whereDate('start_date', '>=', $request->query('from')))
+            ->when($request->filled('to'), fn ($q) => $q->whereDate('start_date', '<=', $request->query('to')))
             ->search($request->query('q'))
             ->status($request->query('status'))
             ->priority($request->query('priority'))
@@ -38,7 +39,9 @@ class ProjectController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('projects.index', compact('projects'));
+        $clients = Client::visibleTo($user)->orderBy('company_name')->get();
+
+        return view('projects.index', compact('projects', 'clients'));
     }
 
     public function create()
@@ -54,9 +57,7 @@ class ProjectController extends Controller
 
     public function store(ProjectRequest $request)
     {
-        $project = Project::create($request->validated());
-
-        ActivityLog::record('project.created', $project, "Created project {$project->name}");
+        $project = $this->service->save(new Project, $request->validated(), $request->user());
 
         return redirect()->route('projects.show', $project)->with('success', 'Project created successfully.');
     }
@@ -66,10 +67,14 @@ class ProjectController extends Controller
         $this->authorize('view', $project);
 
         $project->load(['client', 'manager', 'users'])
-            ->load(['serviceRequests' => fn ($q) => $q->latest()])
-            ->load(['tasks' => fn ($q) => $q->with('assignee')->latest()]);
+            ->load(['serviceRequests' => fn ($q) => $q->visibleTo(request()->user())->latest()])
+            ->load(['tasks' => fn ($q) => $q->visibleTo(request()->user())->with('assignee')->latest()]);
+        $staff = request()->user()->can('assignStaff', $project) ? User::orderBy('name')->get() : collect();
+        $logs = request()->user()->can('viewAny', ActivityLog::class)
+            ? ActivityLog::whereMorphedTo('entity', $project)->with('user')->latest()->orderByDesc('id')->paginate(10)
+            : collect();
 
-        return view('projects.show', compact('project'));
+        return view('projects.show', compact('project', 'staff', 'logs'));
     }
 
     public function edit(Project $project)
@@ -81,20 +86,26 @@ class ProjectController extends Controller
 
     public function update(ProjectRequest $request, Project $project)
     {
-        $project->update($request->validated());
-
-        ActivityLog::record('project.updated', $project, "Updated project {$project->name}");
+        $this->service->save($project, $request->validated(), $request->user());
 
         return redirect()->route('projects.show', $project)->with('success', 'Project updated successfully.');
+    }
+
+    public function assignStaff(ProjectTeamRequest $request, Project $project)
+    {
+        $this->service->assignTeam($project, $request->validated('staff_ids', []), $request->user());
+
+        return back()->with('success', 'Project team updated.');
     }
 
     public function destroy(Project $project)
     {
         $this->authorize('delete', $project);
 
-        $project->delete();
-
-        ActivityLog::record('project.archived', $project, "Archived project {$project->name}");
+        DB::transaction(function () use ($project) {
+            $project->delete();
+            ActivityLog::record('project.archived', $project, "Archived project {$project->name}");
+        });
 
         return redirect()->route('projects.index')->with('success', 'Project archived.');
     }
@@ -103,9 +114,10 @@ class ProjectController extends Controller
     {
         $this->authorize('restore', $project);
 
-        $project->restore();
-
-        ActivityLog::record('project.restored', $project, "Restored project {$project->name}");
+        DB::transaction(function () use ($project) {
+            $project->restore();
+            ActivityLog::record('project.restored', $project, "Restored project {$project->name}");
+        });
 
         return redirect()->route('projects.show', $project)->with('success', 'Project restored.');
     }
@@ -120,7 +132,7 @@ class ProjectController extends Controller
         return [
             'project' => $project,
             'clients' => Client::orderBy('company_name')->get(),
-            'managers' => User::whereIn('role', [UserRole::Manager->value, UserRole::Admin->value])->orderBy('name')->get(),
+            'managers' => User::orderBy('name')->get(),
         ];
     }
 }

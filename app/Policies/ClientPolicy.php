@@ -24,10 +24,7 @@ class ClientPolicy
             return true;
         }
 
-        return $client->projects()
-                ->whereHas('users', fn ($q) => $q->whereKey($user->id))->exists()
-            || $client->serviceRequests()->where('assigned_to', $user->id)->exists()
-            || $client->serviceRequests()->where('created_by', $user->id)->exists();
+        return Client::visibleTo($user)->whereKey($client->id)->exists();
     }
 
     public function create(User $user): bool

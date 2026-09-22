@@ -80,7 +80,7 @@ class ServiceRequest extends Model
 
     public function updates(): HasMany
     {
-        return $this->hasMany(RequestUpdate::class)->latest('created_at');
+        return $this->hasMany(RequestUpdate::class)->latest('created_at')->orderByDesc('id');
     }
 
     public function tasks(): MorphMany
@@ -104,6 +104,13 @@ class ServiceRequest extends Model
     | Query scopes (PRD Section 11)
     |--------------------------------------------------------------------------
     */
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->when($user->isStaff(), fn (Builder $q) => $q->where(
+            fn (Builder $q) => $q->where('assigned_to', $user->id)->orWhere('created_by', $user->id)
+        ));
+    }
 
     public function scopeSearch(Builder $query, ?string $term): Builder
     {

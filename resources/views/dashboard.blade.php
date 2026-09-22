@@ -1,6 +1,9 @@
 <x-app-layout>
     <x-slot name="title">Dashboard</x-slot>
 
+    @if (auth()->user()->isStaff())
+        <p class="text-sm text-muted mb-5">Your workspace · Statistics cover only records related to your assignments.</p>
+    @endif
     {{-- Stat cards --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-lg shadow-sm p-5">
@@ -43,7 +46,8 @@
 
         {{-- Recent activity --}}
         <div class="bg-white rounded-lg shadow-sm p-6">
-            <h2 class="text-sm font-semibold text-gray-700 mb-4">Recent Activity</h2>
+            @can('viewAny', App\Models\ActivityLog::class)
+            <div class="flex justify-between items-center mb-4"><h2 class="section-title">Recent Activity</h2><a href="{{ route('activity-logs.index') }}" class="text-link text-sm">View all</a></div>
             <ul class="space-y-3">
                 @forelse ($recentActivity as $log)
                     <li class="text-sm text-gray-600 flex items-start gap-2">
@@ -57,6 +61,17 @@
                     <li class="text-sm text-gray-400">No activity yet.</li>
                 @endforelse
             </ul>
+            @else
+                <h2 class="section-title mb-4">My Open Tasks</h2>
+                <ul class="divide-y divide-line">
+                    @forelse ($myTasks as $task)
+                        <li class="py-3 flex justify-between gap-3 text-sm"><a href="{{ route('tasks.show', $task) }}" class="text-link">{{ $task->title }}</a><x-status-badge :status="$task->status" /></li>
+                    @empty
+                        <li class="text-sm text-muted">No open tasks assigned to you.</li>
+                    @endforelse
+                </ul>
+                <a href="{{ route('tasks.index') }}" class="text-link text-sm inline-block mt-4">View tasks →</a>
+            @endcan
         </div>
     </div>
 </x-app-layout>

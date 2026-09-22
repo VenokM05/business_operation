@@ -3,14 +3,22 @@
 
     <div class="flex items-center justify-between mb-4">
         <div class="text-sm text-gray-500">
-            {{ $request->client?->company_name }} @if($request->project) · <a href="{{ route('projects.show', $request->project) }}" class="text-indigo-600 hover:underline">{{ $request->project->name }}</a> @endif
+            {{ $request->client?->company_name ?? 'Archived client' }}
+            @if ($request->project && auth()->user()->can('view', $request->project))
+                · <a href="{{ route('projects.show', $request->project) }}" class="text-link">{{ $request->project->name }}</a>
+            @endif
         </div>
+        <div class="flex gap-2">
+        @can('update', $request)
+            <a href="{{ route('service-requests.edit', $request) }}" class="action-secondary">Edit</a>
+        @endcan
         @can('delete', $request)
             <form method="POST" action="{{ route('service-requests.destroy', $request) }}" onsubmit="return confirm('Archive this request?');">
                 @csrf @method('DELETE')
                 <button class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-500">Archive</button>
             </form>
         @endcan
+        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -22,7 +30,7 @@
                         <h2 class="text-lg font-semibold text-gray-800">{{ $request->title }}</h2>
                         <p class="text-sm text-gray-600 mt-2 whitespace-pre-line">{{ $request->description ?: 'No description provided.' }}</p>
                     </div>
-                    <span class="shrink-0 px-2 py-1 rounded-full text-xs bg-indigo-50 text-indigo-700">{{ $request->status?->label() }}</span>
+                    <x-status-badge :status="$request->status" />
                 </div>
                 <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 text-sm">
                     <div><dt class="text-gray-400">Category</dt><dd class="text-gray-800">{{ $request->category?->label() }}</dd></div>
@@ -36,12 +44,17 @@
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <h2 class="text-sm font-semibold text-gray-700 mb-4">Activity</h2>
                 <ol class="relative border-l border-gray-200 space-y-5 ml-3">
-                    @forelse ($request->updates as $update)
+                    @forelse ($updates as $update)
                         <li class="ml-5">
                             <span class="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-indigo-400"></span>
                             <div class="text-sm text-gray-700">
                                 <span class="font-medium">{{ $update->user?->name ?: 'System' }}</span>
-                                {{ $update->message }}
+                                <span class="whitespace-pre-line break-words">{{ $update->message }}</span>
+                            </div>
+                            <div class="text-xs text-muted mt-1">{{ $update->type->label() }}
+                                @if ($update->old_status && $update->new_status)
+                                    · {{ App\Enums\RequestStatus::from($update->old_status)->label() }} → {{ App\Enums\RequestStatus::from($update->new_status)->label() }}
+                                @endif
                             </div>
                             <div class="text-xs text-gray-400">{{ $update->created_at?->format('M d, Y g:i A') }}</div>
                         </li>
@@ -49,15 +62,18 @@
                         <li class="text-sm text-gray-400">No activity yet.</li>
                     @endforelse
                 </ol>
+                <div class="mt-5">{{ $updates->links() }}</div>
 
                 @can('update', $request)
-                    <form method="POST" action="{{ route('service-requests.comments', $request) }}" class="mt-6 flex gap-2">
+                    <form method="POST" action="{{ route('service-requests.comments', $request) }}" class="mt-6 space-y-3">
                         @csrf
-                        <input type="text" name="message" placeholder="Add a progress note…" class="flex-1 rounded-md border-gray-300 text-sm" required maxlength="2000">
-                        <x-primary-button>Comment</x-primary-button>
+                        <label for="message" class="field-label">Progress note</label>
+                        <textarea id="message" name="message" placeholder="Add a progress note…" rows="3" class="field" required maxlength="2000">{{ old('message') }}</textarea>
+                        <button class="action">Add Comment</button>
                     </form>
                 @endcan
             </div>
+            <x-task-list :tasks="$request->tasks" parent-type="request" :parent-id="$request->id" />
         </div>
 
         {{-- Sidebar actions --}}
@@ -89,16 +105,22 @@
             <div class="bg-white rounded-lg shadow-sm p-6">
                 <h2 class="text-sm font-semibold text-gray-700 mb-3">Assigned Staff</h2>
                 @can('assignStaff', $request)
+                    @if (! $request->status->isTerminal())
                     <form method="POST" action="{{ route('service-requests.assign', $request) }}" class="space-y-3">
                         @csrf @method('PATCH')
-                        <select name="assigned_to" class="block w-full rounded-md border-gray-300 text-sm">
+                        <label for="assigned_to" class="sr-only">Assigned staff</label>
+                        <select id="assigned_to" name="assigned_to" class="field">
                             <option value="">— Unassigned —</option>
-                            @foreach (App\Models\User::whereIn('role', ['staff','manager'])->orderBy('name')->get() as $member)
+                            @foreach ($staff as $member)
                                 <option value="{{ $member->id }}" @selected($request->assigned_to == $member->id)>{{ $member->name }}</option>
                             @endforeach
                         </select>
                         <x-primary-button>Save</x-primary-button>
                     </form>
+                    <p class="text-xs text-muted mt-3">Assigning a new request starts the workflow. Active work must retain an assignee.</p>
+                    @else
+                        <p class="text-sm text-muted">{{ $request->assignee?->name ?? 'Unassigned' }} · Assignment is locked for terminal requests.</p>
+                    @endif
                 @else
                     <p class="text-sm text-gray-600">{{ $request->assignee?->name ?: 'Unassigned' }}</p>
                 @endcan

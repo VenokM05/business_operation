@@ -2,6 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    :root {
+        --surface: 0 0% 100%;
+        --ink: 220 26% 17%;
+        --muted: 220 9% 40%;
+        --line: 220 13% 88%;
+        --brand: 243 75% 55%;
+        --success: 150 70% 27%;
+        --warning: 30 85% 32%;
+        --danger: 0 72% 43%;
+    }
+}
+
+@layer components {
+    .panel { @apply rounded-lg border border-line bg-surface p-5 sm:p-6; }
+    .section-title { @apply text-base font-semibold text-ink; }
+    .field-label { @apply block text-sm font-medium text-ink mb-1; }
+    .field { @apply block w-full min-w-0 rounded-md border-line bg-surface text-sm text-ink focus:border-brand focus:ring-brand; }
+    .action { @apply inline-flex items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-semibold text-surface hover:bg-brand/90 focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 transition-colors; }
+    .action-secondary { @apply inline-flex items-center justify-center rounded-md border border-line bg-surface px-3 py-2 text-sm font-medium text-ink hover:bg-ink/5 focus:outline-none focus:ring-2 focus:ring-brand; }
+    .action-danger { @apply inline-flex items-center justify-center rounded-md bg-danger px-3 py-2 text-sm font-semibold text-surface hover:bg-danger/90 focus:outline-none focus:ring-2 focus:ring-danger; }
+    .text-link { @apply text-brand font-medium hover:underline focus:outline-none focus:underline; }
+    .badge { @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium whitespace-nowrap; }
+    .badge-neutral { @apply badge bg-ink/5 text-muted; }
+    .badge-brand { @apply badge bg-brand/10 text-brand; }
+    .badge-success { @apply badge bg-success/10 text-success; }
+    .badge-warning { @apply badge bg-warning/10 text-warning; }
+    .badge-danger { @apply badge bg-danger/10 text-danger; }
+    .data-table { @apply min-w-full divide-y divide-line text-sm; }
+    .data-table th { @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted bg-ink/5; }
+    .data-table td { @apply px-4 py-4 text-ink; }
+    .data-table tbody { @apply divide-y divide-line; }
+    .data-table tbody tr { @apply hover:bg-ink/[0.02]; }
+    .empty-state { @apply py-10 text-center text-sm text-muted; }
+}
+
 [x-cloak] {
     display: none !important;
 }

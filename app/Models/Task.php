@@ -63,6 +63,21 @@ class Task extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->when($user->isStaff(), fn (Builder $q) => $q->where(
+            fn (Builder $q) => $q->where('assigned_to', $user->id)->orWhere('created_by', $user->id)
+        ));
+    }
+
+    public function scopeSearch(Builder $query, ?string $term): Builder
+    {
+        return $query->when(filled($term), fn (Builder $q) => $q->where(
+            fn (Builder $q) => $q->where('title', 'like', "%{$term}%")
+                ->orWhere('description', 'like', "%{$term}%")
+        ));
+    }
+
     public function scopeOpen(Builder $query): Builder
     {
         return $query->where('status', '!=', TaskStatus::Completed->value);

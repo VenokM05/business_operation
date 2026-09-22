@@ -4,18 +4,24 @@ namespace App\Http\Controllers;
 
 use App\Enums\ClientStatus;
 use App\Http\Requests\ClientRequest;
+use App\Http\Requests\ListingRequest;
 use App\Models\ActivityLog;
 use App\Models\Client;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ClientController extends Controller
 {
-    public function index(Request $request)
+    public function index(ListingRequest $request)
     {
         $this->authorize('viewAny', Client::class);
 
-        $clients = Client::query()
-            ->withCount(['projects', 'serviceRequests'])
+        $clients = Client::visibleTo($request->user())
+            ->when($request->query('archive') === 'archived', fn ($q) => $q->onlyTrashed())
+            ->withCount([
+                'projects' => fn ($q) => $q->visibleTo($request->user()),
+                'serviceRequests' => fn ($q) => $q->visibleTo($request->user()),
+            ])
             ->search($request->query('q'))
             ->status($request->query('status'))
             ->industry($request->query('industry'))
@@ -23,7 +29,9 @@ class ClientController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $industries = Client::query()->whereNotNull('industry')->distinct()->orderBy('industry')->pluck('industry');
+        $industries = Client::visibleTo($request->user())
+            ->when($request->query('archive') === 'archived', fn ($q) => $q->onlyTrashed())
+            ->whereNotNull('industry')->distinct()->orderBy('industry')->pluck('industry');
 
         return view('clients.index', compact('clients', 'industries'));
     }
@@ -37,9 +45,12 @@ class ClientController extends Controller
 
     public function store(ClientRequest $request)
     {
-        $client = Client::create($request->validated());
+        $client = DB::transaction(function () use ($request) {
+            $client = Client::create($request->validated());
+            ActivityLog::record('client.created', $client, "Created client {$client->company_name}");
 
-        ActivityLog::record('client.created', $client, "Created client {$client->company_name}");
+            return $client;
+        });
 
         return redirect()->route('clients.show', $client)->with('success', 'Client created successfully.');
     }
@@ -48,9 +59,15 @@ class ClientController extends Controller
     {
         $this->authorize('view', $client);
 
-        $client->load(['projects' => fn ($q) => $q->latest(), 'serviceRequests' => fn ($q) => $q->latest()]);
+        $client->load([
+            'projects' => fn ($q) => $q->visibleTo(request()->user())->latest(),
+            'serviceRequests' => fn ($q) => $q->visibleTo(request()->user())->latest(),
+        ]);
+        $logs = request()->user()->can('viewAny', ActivityLog::class)
+            ? ActivityLog::whereMorphedTo('entity', $client)->with('user')->latest()->orderByDesc('id')->paginate(10)
+            : collect();
 
-        return view('clients.show', compact('client'));
+        return view('clients.show', compact('client', 'logs'));
     }
 
     public function edit(Client $client)
@@ -62,9 +79,10 @@ class ClientController extends Controller
 
     public function update(ClientRequest $request, Client $client)
     {
-        $client->update($request->validated());
-
-        ActivityLog::record('client.updated', $client, "Updated client {$client->company_name}");
+        DB::transaction(function () use ($request, $client) {
+            $client->update($request->validated());
+            ActivityLog::record('client.updated', $client, "Updated client {$client->company_name}");
+        });
 
         return redirect()->route('clients.show', $client)->with('success', 'Client updated successfully.');
     }
@@ -74,9 +92,10 @@ class ClientController extends Controller
     {
         $this->authorize('delete', $client);
 
-        $client->delete();
-
-        ActivityLog::record('client.archived', $client, "Archived client {$client->company_name}");
+        DB::transaction(function () use ($client) {
+            $client->delete();
+            ActivityLog::record('client.archived', $client, "Archived client {$client->company_name}");
+        });
 
         return redirect()->route('clients.index')->with('success', 'Client archived.');
     }
@@ -85,9 +104,10 @@ class ClientController extends Controller
     {
         $this->authorize('restore', $client);
 
-        $client->restore();
-
-        ActivityLog::record('client.restored', $client, "Restored client {$client->company_name}");
+        DB::transaction(function () use ($client) {
+            $client->restore();
+            ActivityLog::record('client.restored', $client, "Restored client {$client->company_name}");
+        });
 
         return redirect()->route('clients.show', $client)->with('success', 'Client restored.');
     }

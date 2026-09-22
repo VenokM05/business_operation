@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'BOMS') }}</title>
+        <title>{{ $title ?? 'Dashboard' }} · {{ config('app.name', 'BOMS') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -32,7 +32,7 @@
                             <button class="lg:hidden text-gray-500 hover:text-gray-700" @click="sidebarOpen = true" aria-label="Open menu">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                             </button>
-                            <h1 class="text-lg font-semibold text-gray-800">{{ $title ?? config('app.name') }}</h1>
+                            <h1 class="text-lg font-semibold text-gray-800 truncate max-w-[45vw]">{{ $title ?? config('app.name') }}</h1>
                         </div>
 
                         {{-- User menu --}}
@@ -57,6 +57,11 @@
                             </x-dropdown>
                         </div>
                     </div>
+                    <form method="GET" action="{{ route('search') }}" role="search" class="flex gap-2 px-4 sm:px-6 lg:px-8 pb-3">
+                        <label for="global-search" class="sr-only">Global search</label>
+                        <input id="global-search" type="search" name="q" class="field max-w-xl" placeholder="Search clients, projects, and requests…" required maxlength="255">
+                        <button class="action-secondary">Search</button>
+                    </form>
                 </header>
 
                 {{-- Flash messages --}}
@@ -71,8 +76,11 @@
                             {{ session('error') }}
                         </div>
                     @endif
-                    @if ($errors->any() && ! $errors->has('status'))
-                        {{-- Form errors are shown inline; nothing global here. --}}
+                    @if ($errors->any())
+                        <div role="alert" class="rounded-md border border-danger/30 bg-danger/10 p-4 text-sm text-danger">
+                            <p class="font-semibold">Please correct the following:</p>
+                            <ul class="mt-2 list-disc pl-5">@foreach ($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul>
+                        </div>
                     @endif
                 </div>
 

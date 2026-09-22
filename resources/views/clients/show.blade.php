@@ -58,4 +58,5 @@
             </ul>
         </div>
     </div>
+    <x-activity-history :logs="$logs" />
 </x-app-layout>

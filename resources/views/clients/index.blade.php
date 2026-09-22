@@ -12,26 +12,7 @@
     </div>
 
     {{-- Filters --}}
-    <form method="GET" action="{{ route('clients.index') }}" class="bg-white rounded-lg shadow-sm p-4 mb-4 grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <input type="text" name="q" value="{{ request('q') }}" placeholder="Search company / contact / email"
-               class="rounded-md border-gray-300 text-sm focus:border-indigo-500 focus:ring-indigo-500">
-        <select name="status" class="rounded-md border-gray-300 text-sm">
-            <option value="">All statuses</option>
-            @foreach (App\Enums\ClientStatus::options() as $value => $label)
-                <option value="{{ $value }}" @selected(request('status') === $value)>{{ $label }}</option>
-            @endforeach
-        </select>
-        <select name="industry" class="rounded-md border-gray-300 text-sm">
-            <option value="">All industries</option>
-            @foreach ($industries as $industry)
-                <option value="{{ $industry }}" @selected(request('industry') === $industry)>{{ $industry }}</option>
-            @endforeach
-        </select>
-        <div class="flex gap-2">
-            <button class="px-4 py-2 bg-gray-800 text-white text-sm rounded-md hover:bg-gray-700">Filter</button>
-            <a href="{{ route('clients.index') }}" class="px-4 py-2 text-sm text-gray-600 hover:text-gray-900">Reset</a>
-        </div>
-    </form>
+    <x-list-filters resource="clients" :statuses="App\Enums\ClientStatus::options()" :industries="$industries" />
 
     {{-- Table --}}
     <div class="bg-white rounded-lg shadow-sm overflow-x-auto">
@@ -50,7 +31,7 @@
                 @forelse ($clients as $client)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3">
-                            <a href="{{ route('clients.show', $client) }}" class="font-medium text-indigo-600 hover:underline">{{ $client->company_name }}</a>
+                            <x-record-link :record="$client" resource="clients" :label="$client->company_name" />
                         </td>
                         <td class="px-4 py-3 text-gray-600">{{ $client->contact_person ?: '—' }}</td>
                         <td class="px-4 py-3 text-gray-600">{{ $client->industry ?: '—' }}</td>

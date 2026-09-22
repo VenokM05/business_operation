@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\ActivityLogController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceRequestController;
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -13,6 +16,10 @@ Route::get('/', function () {
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', DashboardController::class)->name('dashboard');
+    Route::get('/search', SearchController::class)->name('search');
+    Route::get('/activity-logs', ActivityLogController::class)->name('activity-logs.index');
+    Route::resource('tasks', TaskController::class);
+    Route::patch('tasks/{task}/restore', [TaskController::class, 'restore'])->withTrashed()->name('tasks.restore');
 
     // Clients
     Route::resource('clients', ClientController::class);
@@ -20,10 +27,11 @@ Route::middleware(['auth'])->group(function () {
 
     // Projects
     Route::resource('projects', ProjectController::class);
+    Route::patch('projects/{project}/staff', [ProjectController::class, 'assignStaff'])->name('projects.staff');
     Route::patch('projects/{project}/restore', [ProjectController::class, 'restore'])->withTrashed()->name('projects.restore');
 
     // Service requests + workflow actions
-    Route::resource('service-requests', ServiceRequestController::class)->except(['edit', 'update']);
+    Route::resource('service-requests', ServiceRequestController::class);
     Route::patch('service-requests/{service_request}/assign', [ServiceRequestController::class, 'assign'])->name('service-requests.assign');
     Route::patch('service-requests/{service_request}/status', [ServiceRequestController::class, 'updateStatus'])->name('service-requests.status');
     Route::post('service-requests/{service_request}/comments', [ServiceRequestController::class, 'addComment'])->name('service-requests.comments');

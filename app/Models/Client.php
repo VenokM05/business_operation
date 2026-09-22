@@ -46,6 +46,14 @@ class Client extends Model
     |--------------------------------------------------------------------------
     */
 
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->when($user->isStaff(), fn (Builder $q) => $q->where(
+            fn (Builder $q) => $q->whereHas('projects', fn (Builder $q) => $q->visibleTo($user))
+                ->orWhereHas('serviceRequests', fn (Builder $q) => $q->visibleTo($user))
+        ));
+    }
+
     public function scopeSearch(Builder $query, ?string $term): Builder
     {
         if (blank($term)) {

@@ -42,6 +42,23 @@ class Project extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::updated(function (self $project) {
+            if ($project->wasChanged('client_id')) {
+                $project->serviceRequests()->withTrashed()->update(['client_id' => $project->client_id]);
+            }
+        });
+    }
+
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->when($user->isStaff(), fn (Builder $q) => $q->where(
+            fn (Builder $q) => $q->where('project_manager_id', $user->id)
+                ->orWhereHas('users', fn (Builder $q) => $q->whereKey($user->id))
+        ));
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

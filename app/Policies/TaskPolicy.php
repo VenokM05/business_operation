@@ -29,13 +29,12 @@ class TaskPolicy
         return true;
     }
 
-    /** Staff may update/delete only tasks assigned to or created by them. */
+    /** Staff may update/delete only tasks assigned to them (Section 2). */
     public function update(User $user, Task $task): bool
     {
         return $user->hasRole(UserRole::Admin)
             || $user->hasRole(UserRole::Manager)
-            || (int) $task->assigned_to === $user->id
-            || (int) $task->created_by === $user->id;
+            || (int) $task->assigned_to === $user->id;
     }
 
     public function delete(User $user, Task $task): bool
