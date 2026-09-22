@@ -27,6 +27,23 @@ The project was delivered in four increments that mirror how a real system would
 | **3 — Professional features** | REST API (Sanctum), Reports, CSV/Excel export, automated tests, seeders |
 | **4 — Presentation** | Design system + logo, README, architecture & ER diagrams, API documentation |
 
+## Who It's For
+
+BOMS is an **internal tool for the operations team of a service-oriented business** — agencies,
+consultancies, IT/MSPs, facilities and professional-services firms. It is not a customer-facing
+portal: every screen assumes a trusted, logged-in employee.
+
+**Target users, by role:**
+
+| Role | Who they are | What they use it for |
+| --- | --- | --- |
+| **Admin** | System owner / IT | Oversees all data, manages users, force-deletes, full audit access |
+| **Manager** | Operations / project lead | Creates clients, projects and requests, assigns staff, tracks delivery, runs reports |
+| **Staff** | Individual contributor / technician | Works the requests and tasks assigned to them, logs progress, sees only their own records |
+
+It also doubles as a **reference implementation** for developers evaluating how to structure a
+maintainable, role-aware Laravel business system.
+
 ## Features
 
 - **Role-based access control** — Admin, Manager and Staff roles enforced with Laravel **Policies**
@@ -296,6 +313,30 @@ php artisan serve      # http://127.0.0.1:8000
 
 Sign in at **/login** with any demo account above.
 
+## How to Use
+
+Once the app is running and you're signed in, the day-to-day flow is:
+
+1. **Register the client** — *Clients → New Client* (company, contact, industry, status).
+2. **Create the project** — *Projects → New Project*, attach it to the client, set the manager,
+   budget and dates, then add the delivery team on the project page.
+3. **Log a service request** — *Service Requests → New Request*, choose the client (and optional
+   project), category and priority. New requests start in the **New** status.
+4. **Assign & progress** — a manager assigns staff, then moves the request through the workflow
+   (New → Assigned → In Progress → Pending → Resolved → Closed). Progress notes appear on the
+   request **timeline**.
+5. **Break down the work** — *Tasks → New Task*, attach each task to a project or a request and set
+   assignee, priority and due date. Overdue tasks are flagged automatically.
+6. **Monitor & review** — the **Dashboard** shows live stats and recent activity; **global search**
+   (top bar) finds any client/project/request you can access; **Activity Logs** is the audit trail;
+   and **Reports** provides aggregates with one-click CSV/Excel export.
+
+> **Role visibility:** Staff only ever see records related to their own assignments; Managers and
+> Admins see everything. The same rules are enforced on the REST API.
+
+**Programmatic use:** call `POST /api/v1/auth/login` to obtain a bearer token, then use the
+`/api/v1/*` endpoints — see [API Documentation](#api-documentation).
+
 ## API Documentation
 
 A versioned JSON API under **`/api/v1`**, authenticated with **Sanctum bearer tokens**. It reuses the
@@ -418,6 +459,10 @@ Deliberately left out of the MVP to keep scope tight:
 - **Queue-backed exports** — generate large CSV/XLSX reports asynchronously.
 - **File attachments** on requests/tasks.
 
+## Authors & Developers
+
+- **Elvin Manuel** — Author & Developer — design, implementation and documentation of BOMS.
+
 ---
 
-<p align="center"><em>BOMS — built as a maintainable Laravel business system.</em></p>
+<p align="center"><em>BOMS — built by Elvin Manuel · a maintainable Laravel business system.</em></p>
