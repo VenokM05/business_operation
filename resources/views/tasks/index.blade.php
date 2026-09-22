@@ -5,7 +5,7 @@
         <a href="{{ route('tasks.create') }}" class="action shrink-0">New Task</a>
     </div>
     <x-list-filters resource="tasks" :statuses="App\Enums\TaskStatus::options()" :priorities="true" :staff="$staff" date-label="Due date" />
-    <div class="rounded-lg border border-line bg-surface overflow-x-auto">
+    <div class="table-card">
         <table class="data-table">
             <thead><tr><th>Task</th><th>Parent</th><th>Assigned staff</th><th>Priority</th><th>Status</th><th>Due date</th></tr></thead>
             <tbody>

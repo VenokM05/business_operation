@@ -1,40 +1,40 @@
 <x-app-layout>
     <x-slot name="title">Service Requests</x-slot>
 
-    <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-gray-500">{{ $requests->total() }} requests</p>
-        <a href="{{ route('service-requests.create') }}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-md hover:bg-indigo-500">New Request</a>
+    <div class="mb-4 flex items-center justify-between">
+        <p class="text-sm text-muted">{{ $requests->total() }} requests</p>
+        <a href="{{ route('service-requests.create') }}" class="action">New Request</a>
     </div>
 
     <x-list-filters resource="service-requests" :statuses="App\Enums\RequestStatus::options()" :priorities="true" :clients="$clients" :staff="$staff" :categories="true" date-label="Due date" />
 
-    <div class="bg-white rounded-lg shadow-sm overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase">
+    <div class="table-card">
+        <table class="data-table">
+            <thead>
                 <tr>
-                    <th class="px-4 py-3">Request</th>
-                    <th class="px-4 py-3">Client</th>
-                    <th class="px-4 py-3">Category</th>
-                    <th class="px-4 py-3">Priority</th>
-                    <th class="px-4 py-3">Assignee</th>
-                    <th class="px-4 py-3">Status</th>
-                    <th class="px-4 py-3">Due</th>
+                    <th>Request</th>
+                    <th>Client</th>
+                    <th>Category</th>
+                    <th>Priority</th>
+                    <th>Assignee</th>
+                    <th>Status</th>
+                    <th>Due</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-100 text-sm">
+            <tbody>
                 @forelse ($requests as $request)
-                    <tr class="hover:bg-gray-50">
-                        <td class="px-4 py-3"><x-record-link :record="$request" resource="service-requests" :label="$request->request_number" />
-                            <div class="text-gray-500 text-xs">{{ $request->title }}</div></td>
-                        <td class="px-4 py-3 text-gray-600">{{ $request->client?->company_name ?: '—' }}</td>
-                        <td class="px-4 py-3 text-gray-600">{{ $request->category?->label() }}</td>
-                        <td class="px-4 py-3 text-gray-600">{{ $request->priority?->label() }}</td>
-                        <td class="px-4 py-3 text-gray-600">{{ $request->assignee?->name ?: '—' }}</td>
-                        <td class="px-4 py-3"><x-status-badge :status="$request->status" /></td>
-                        <td class="px-4 py-3 text-gray-600">{{ $request->due_date?->format('M d, Y') ?: '—' }}</td>
+                    <tr>
+                        <td><x-record-link :record="$request" resource="service-requests" :label="$request->request_number" />
+                            <div class="text-xs text-muted">{{ $request->title }}</div></td>
+                        <td>{{ $request->client?->company_name ?: '—' }}</td>
+                        <td>{{ $request->category?->label() }}</td>
+                        <td><x-status-badge :status="$request->priority" /></td>
+                        <td>{{ $request->assignee?->name ?: '—' }}</td>
+                        <td><x-status-badge :status="$request->status" /></td>
+                        <td class="whitespace-nowrap">{{ $request->due_date?->format('M d, Y') ?: '—' }}</td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="px-4 py-8 text-center text-gray-400">No requests found.</td></tr>
+                    <tr><td colspan="7"><div class="empty-state">No requests found.</div></td></tr>
                 @endforelse
             </tbody>
         </table>

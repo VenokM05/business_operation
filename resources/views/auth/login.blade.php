@@ -1,4 +1,9 @@
 <x-guest-layout>
+    <div class="mb-6">
+        <h1 class="text-xl font-bold tracking-tight text-ink">Sign in to your account</h1>
+        <p class="mt-1 text-sm text-muted">Enter your credentials to access the dashboard.</p>
+    </div>
+
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
@@ -27,14 +32,14 @@
         <!-- Remember Me -->
         <div class="block mt-4">
             <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="remember">
-                <span class="ms-2 text-sm text-gray-600">{{ __('Remember me') }}</span>
+                <input id="remember_me" type="checkbox" class="rounded border-line text-brand shadow-sm focus:ring-brand/30" name="remember">
+                <span class="ms-2 text-sm text-muted">{{ __('Remember me') }}</span>
             </label>
         </div>
 
         <div class="flex items-center justify-end mt-4">
             @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('password.request') }}">
+                <a class="text-sm text-brand underline-offset-2 hover:underline rounded-md focus:outline-none focus:ring-2 focus:ring-brand/30" href="{{ route('password.request') }}">
                     {{ __('Forgot your password?') }}
                 </a>
             @endif

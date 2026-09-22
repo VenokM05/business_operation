@@ -28,7 +28,7 @@
     </div>
     <div>
         <x-input-label for="status" value="Status *" />
-        <select id="status" name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+        <select id="status" name="status" class="field" required>
             @foreach (App\Enums\ClientStatus::options() as $value => $label)
                 <option value="{{ $value }}" @selected(old('status', optional($client->status ?? null)->value) === $value)>{{ $label }}</option>
             @endforeach
@@ -37,7 +37,7 @@
     </div>
     <div class="sm:col-span-2">
         <x-input-label for="address" value="Address" />
-        <textarea id="address" name="address" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">{{ old('address', $client?->address) }}</textarea>
+        <textarea id="address" name="address" rows="2" class="field">{{ old('address', $client?->address) }}</textarea>
         <x-input-error :messages="$errors->get('address')" class="mt-1" />
     </div>
 </div>

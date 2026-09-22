@@ -10,7 +10,7 @@
         <div><label for="to" class="field-label">Recorded to</label><input id="to" name="to" type="date" value="{{ request('to') }}" class="field"></div>
         <div class="flex items-center gap-3"><button class="action">Filter</button><a href="{{ route('activity-logs.index') }}" class="text-link text-sm">Reset</a></div>
     </form>
-    <div class="rounded-lg border border-line bg-surface overflow-x-auto">
+    <div class="table-card">
         <table class="data-table">
             <thead><tr><th>When (UTC)</th><th>Actor</th><th>Action / resource</th><th>Description</th></tr></thead>
             <tbody>

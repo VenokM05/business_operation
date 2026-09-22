@@ -2,7 +2,7 @@
     <x-slot name="title">{{ $request->request_number }}</x-slot>
 
     <div class="flex items-center justify-between mb-4">
-        <div class="text-sm text-gray-500">
+        <div class="text-sm text-muted">
             {{ $request->client?->company_name ?? 'Archived client' }}
             @if ($request->project && auth()->user()->can('view', $request->project))
                 · <a href="{{ route('projects.show', $request->project) }}" class="text-link">{{ $request->project->name }}</a>
@@ -15,7 +15,7 @@
         @can('delete', $request)
             <form method="POST" action="{{ route('service-requests.destroy', $request) }}" onsubmit="return confirm('Archive this request?');">
                 @csrf @method('DELETE')
-                <button class="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-500">Archive</button>
+                <button class="action-danger">Archive</button>
             </form>
         @endcan
         </div>
@@ -24,30 +24,30 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {{-- Main column --}}
         <div class="lg:col-span-2 space-y-6">
-            <div class="bg-white rounded-lg shadow-sm p-6">
+            <div class="panel">
                 <div class="flex items-start justify-between gap-4">
                     <div>
-                        <h2 class="text-lg font-semibold text-gray-800">{{ $request->title }}</h2>
-                        <p class="text-sm text-gray-600 mt-2 whitespace-pre-line">{{ $request->description ?: 'No description provided.' }}</p>
+                        <h2 class="text-lg font-semibold text-ink">{{ $request->title }}</h2>
+                        <p class="mt-2 whitespace-pre-line text-sm text-muted">{{ $request->description ?: 'No description provided.' }}</p>
                     </div>
                     <x-status-badge :status="$request->status" />
                 </div>
-                <dl class="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-6 text-sm">
-                    <div><dt class="text-gray-400">Category</dt><dd class="text-gray-800">{{ $request->category?->label() }}</dd></div>
-                    <div><dt class="text-gray-400">Priority</dt><dd class="text-gray-800">{{ $request->priority?->label() }}</dd></div>
-                    <div><dt class="text-gray-400">Assignee</dt><dd class="text-gray-800">{{ $request->assignee?->name ?: 'Unassigned' }}</dd></div>
-                    <div><dt class="text-gray-400">Due</dt><dd class="text-gray-800">{{ $request->due_date?->format('M d, Y') ?: '—' }}</dd></div>
+                <dl class="mt-6 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+                    <div><dt class="text-muted">Category</dt><dd class="font-medium text-ink">{{ $request->category?->label() }}</dd></div>
+                    <div><dt class="text-muted">Priority</dt><dd class="font-medium text-ink">{{ $request->priority?->label() }}</dd></div>
+                    <div><dt class="text-muted">Assignee</dt><dd class="font-medium text-ink">{{ $request->assignee?->name ?: 'Unassigned' }}</dd></div>
+                    <div><dt class="text-muted">Due</dt><dd class="font-medium text-ink">{{ $request->due_date?->format('M d, Y') ?: '—' }}</dd></div>
                 </dl>
             </div>
 
             {{-- Activity timeline (PRD Section 9) --}}
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-sm font-semibold text-gray-700 mb-4">Activity</h2>
-                <ol class="relative border-l border-gray-200 space-y-5 ml-3">
+            <div class="panel">
+                <h2 class="section-title mb-4">Activity</h2>
+                <ol class="relative ml-3 space-y-5 border-l border-line">
                     @forelse ($updates as $update)
                         <li class="ml-5">
-                            <span class="absolute -left-1.5 mt-1.5 w-3 h-3 rounded-full bg-indigo-400"></span>
-                            <div class="text-sm text-gray-700">
+                            <span class="absolute -left-1.5 mt-1.5 h-3 w-3 rounded-full bg-accent ring-4 ring-accent/15"></span>
+                            <div class="text-sm text-ink">
                                 <span class="font-medium">{{ $update->user?->name ?: 'System' }}</span>
                                 <span class="whitespace-pre-line break-words">{{ $update->message }}</span>
                             </div>
@@ -56,10 +56,10 @@
                                     · {{ App\Enums\RequestStatus::from($update->old_status)->label() }} → {{ App\Enums\RequestStatus::from($update->new_status)->label() }}
                                 @endif
                             </div>
-                            <div class="text-xs text-gray-400">{{ $update->created_at?->format('M d, Y g:i A') }}</div>
+                            <div class="mt-1 text-xs text-muted">{{ $update->created_at?->format('M d, Y g:i A') }}</div>
                         </li>
                     @empty
-                        <li class="text-sm text-gray-400">No activity yet.</li>
+                        <li class="text-sm text-muted">No activity yet.</li>
                     @endforelse
                 </ol>
                 <div class="mt-5">{{ $updates->links() }}</div>
@@ -79,31 +79,31 @@
         {{-- Sidebar actions --}}
         <div class="space-y-6">
             {{-- Status transition --}}
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-sm font-semibold text-gray-700 mb-3">Change Status</h2>
+            <div class="panel">
+                <h2 class="section-title mb-3">Change Status</h2>
                 @can('changeStatus', $request)
                     @if ($allowedTransitions->isEmpty())
-                        <p class="text-sm text-gray-400">No further transitions ({{ $request->status?->label() }} is terminal).</p>
+                        <p class="text-sm text-muted">No further transitions ({{ $request->status?->label() }} is terminal).</p>
                     @else
                         <div class="flex flex-wrap gap-2">
                             @foreach ($allowedTransitions as $to)
                                 <form method="POST" action="{{ route('service-requests.status', $request) }}">
                                     @csrf @method('PATCH')
                                     <input type="hidden" name="status" value="{{ $to->value }}">
-                                    <button class="px-3 py-1.5 text-sm bg-gray-800 text-white rounded-md hover:bg-gray-700">{{ $to->label() }}</button>
+                                    <button class="action">{{ $to->label() }}</button>
                                 </form>
                             @endforeach
                         </div>
                     @endif
                 @else
-                    <p class="text-sm text-gray-400">You don't have permission to change status.</p>
+                    <p class="text-sm text-muted">You don't have permission to change status.</p>
                 @endcan
-                @error('status')<p class="mt-2 text-xs text-red-600">{{ $message }}</p>@enderror
+                @error('status')<p class="mt-2 text-xs text-danger">{{ $message }}</p>@enderror
             </div>
 
             {{-- Assignment --}}
-            <div class="bg-white rounded-lg shadow-sm p-6">
-                <h2 class="text-sm font-semibold text-gray-700 mb-3">Assigned Staff</h2>
+            <div class="panel">
+                <h2 class="section-title mb-3">Assigned Staff</h2>
                 @can('assignStaff', $request)
                     @if (! $request->status->isTerminal())
                     <form method="POST" action="{{ route('service-requests.assign', $request) }}" class="space-y-3">
@@ -122,7 +122,7 @@
                         <p class="text-sm text-muted">{{ $request->assignee?->name ?? 'Unassigned' }} · Assignment is locked for terminal requests.</p>
                     @endif
                 @else
-                    <p class="text-sm text-gray-600">{{ $request->assignee?->name ?: 'Unassigned' }}</p>
+                    <p class="text-sm text-ink">{{ $request->assignee?->name ?: 'Unassigned' }}</p>
                 @endcan
             </div>
         </div>

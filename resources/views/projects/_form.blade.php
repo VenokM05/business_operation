@@ -7,7 +7,7 @@
 
     <div>
         <x-input-label for="client_id" value="Client *" />
-        <select id="client_id" name="client_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+        <select id="client_id" name="client_id" class="field" required>
             <option value="">— Select client —</option>
             @foreach ($clients as $client)
                 <option value="{{ $client->id }}" @selected(old('client_id', $project?->client_id) == $client->id)>{{ $client->company_name }}</option>
@@ -18,7 +18,7 @@
 
     <div>
         <x-input-label for="project_manager_id" value="Project Manager" />
-        <select id="project_manager_id" name="project_manager_id" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+        <select id="project_manager_id" name="project_manager_id" class="field">
             <option value="">— Unassigned —</option>
             @foreach ($managers as $manager)
                 <option value="{{ $manager->id }}" @selected(old('project_manager_id', $project?->project_manager_id) == $manager->id)>{{ $manager->name }}</option>
@@ -29,7 +29,7 @@
 
     <div>
         <x-input-label for="priority" value="Priority *" />
-        <select id="priority" name="priority" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+        <select id="priority" name="priority" class="field" required>
             @foreach (App\Enums\Priority::options() as $value => $label)
                 <option value="{{ $value }}" @selected(old('priority', optional($project?->priority)->value) === $value)>{{ $label }}</option>
             @endforeach
@@ -39,7 +39,7 @@
 
     <div>
         <x-input-label for="status" value="Status *" />
-        <select id="status" name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm" required>
+        <select id="status" name="status" class="field" required>
             @foreach (App\Enums\ProjectStatus::options() as $value => $label)
                 <option value="{{ $value }}" @selected(old('status', optional($project?->status)->value) === $value)>{{ $label }}</option>
             @endforeach
@@ -73,7 +73,7 @@
 
     <div class="sm:col-span-2">
         <x-input-label for="description" value="Description" />
-        <textarea id="description" name="description" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">{{ old('description', $project?->description) }}</textarea>
+        <textarea id="description" name="description" rows="3" class="field">{{ old('description', $project?->description) }}</textarea>
         <x-input-error :messages="$errors->get('description')" class="mt-1" />
     </div>
 </div>
